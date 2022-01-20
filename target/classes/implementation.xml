@@ -1,0 +1,183 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:cloudhub="http://www.mulesoft.org/schema/mule/cloudhub" xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns:os="http://www.mulesoft.org/schema/mule/os"
+	xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:s3="http://www.mulesoft.org/schema/mule/s3" xmlns:json-logger="http://www.mulesoft.org/schema/mule/json-logger" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/json-logger http://www.mulesoft.org/schema/mule/json-logger/current/mule-json-logger.xsd
+http://www.mulesoft.org/schema/mule/s3 http://www.mulesoft.org/schema/mule/s3/current/mule-s3.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/os http://www.mulesoft.org/schema/mule/os/current/mule-os.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/cloudhub http://www.mulesoft.org/schema/mule/cloudhub/current/mule-cloudhub.xsd">
+	<http:request-config name="HTTP_Request_configuration" doc:name="HTTP Request configuration" doc:id="95feca3b-1711-41dd-a702-85a05420f7ff" >
+		<http:request-connection host="localhost" port="8087" />
+	</http:request-config>
+	<http:request-config name="HTTP_Request_configuration1" doc:name="HTTP Request configuration" doc:id="f8de3b92-b232-44d5-af0d-55295ccac314" >
+		<http:request-connection host="${sysapi.host}" port="${sysapi.port}" />
+	</http:request-config>
+	<flow name="GETcardetails" doc:id="8551126b-f7ec-4861-90c8-b770ca6d1431" >
+		<json-logger:logger doc:name="Logger" doc:id="4c8a731c-82f4-4449-b6c7-139b7e7dda35" message='#["fetching car details initiated" ++ now()]' config-ref="JSON_Logger_Config1"/>
+		<set-variable value="#[attributes.queryParams]" doc:name="sourceVar" doc:id="6af02de7-2083-4c75-b52f-07c6c742a10d" variableName="queryParams"/>
+		<http:request method="GET" doc:name="callSysapi" doc:id="80c66173-7705-4b03-849d-5b76da169b0d" config-ref="HTTP_Request_configuration1" path="/api/car" responseTimeout="1000000">
+			<http:headers ><![CDATA[#[output application/java
+---
+{
+	client_secret : "2DddFf34C0c141D3A71c49E80EFfC084",
+	client_id : "b7f18c35f8bc48239eda74bfd669485b"
+}]]]></http:headers>
+			<http:query-params ><![CDATA[#[output application/java
+---
+{
+	s3Bucketname : Mule::p("s3.bucketName"),
+	s3Keyname : Mule::p("s3.readFilename")
+}]]]></http:query-params>
+		</http:request>
+		<ee:transform doc:name="Transform Message" doc:id="684f2c00-a819-4e28-8bfe-815278b21367" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+import capitalize from dw::core::Strings
+---
+payload map($) filter($.source == capitalize(vars.queryParams.source) and
+	$.destination == capitalize(vars.queryParams.destination))]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<json-logger:logger doc:name="Logger" doc:id="c62ca246-6b6a-452d-bf2e-76c18d5d96b8" message='#["fetching car details completed" ++ now()]' config-ref="JSON_Logger_Config1"/>
+		<error-handler >
+			<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="003db465-954b-48a1-a758-ab8d9e8a1ed1" type="ANY">
+				<logger level="INFO" doc:name="Logger" doc:id="44f39957-f28d-4867-8c8a-28423a179521" message="#[error]"/>
+			</on-error-propagate>
+		</error-handler>
+	</flow>
+	<flow name="POSTcardetails" doc:id="d959fb04-d90a-4bc0-a234-8bf10ee5f24f" >
+		<json-logger:logger doc:name="Logger" doc:id="22ab38a8-5db3-40cf-a711-c189ebb21bbb" message='#["car booking in objectstore initiated" ++ now()]' config-ref="JSON_Logger_Config1"/>
+		<os:store doc:name="Store" doc:id="0e7cfaf5-9413-49f6-94d0-43f759731441" key="#[payload.carNumber]" objectStore="carBookingObjectStore"/>
+		<json-logger:logger doc:name="Logger" doc:id="327946af-2c13-4d6e-b157-6c0f6a49390b" message='#["car booking in objectstore completed" ++ now()]' config-ref="JSON_Logger_Config1"/>
+		<error-handler >
+			<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="684608e9-f74a-41d8-bf24-402eb4618ee1" type="ANY">
+				<json-logger:logger doc:name="Error_logging" doc:id="eb5b5236-a22a-471f-9482-66d693c3ca4d" message='#["Error occured while stoing data in object Store" ++ now() ++ error.description as String]' config-ref="JSON_Logger_Config1"/>
+				<logger level="INFO" doc:name="Logger" doc:id="1d4a2b7f-de76-4e08-8dbc-a70983dec2a5" />
+			</on-error-continue>
+		</error-handler>
+	</flow>
+	<flow name="generatingFileforcarbooking_vendorwise" doc:id="8c4fd92d-572b-4e9e-b619-74571e7898eb" >
+		<scheduler doc:name="Scheduler" doc:id="4001d2e3-78d0-4c93-8b28-f206d8bb27df" >
+			<scheduling-strategy >
+				<fixed-frequency frequency="2" timeUnit="MINUTES" startDelay="2"/>
+			</scheduling-strategy>
+		</scheduler>
+		<json-logger:logger doc:name="Logger" doc:id="9d9987af-df96-4a91-a351-584746d072fd" message='#["cab booking file generation initiated"++ now()]' config-ref="JSON_Logger_Config1"/>
+		<os:retrieve-all doc:name="Retrieve all" doc:id="d057137c-29d5-4aa0-9630-6b6d751d9a6a" objectStore="carBookingObjectStore"/>
+		<choice doc:name="Choice" doc:id="869d509b-967d-4929-89c4-e47219a81211" >
+			<when expression="#[isEmpty(payload) == false]">
+				<ee:transform doc:name="byte to JSON" doc:id="1020ad58-be6b-4ae7-9e52-840079383f71" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload pluck(message,property,index) -> {(property) :message}]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+				<ee:transform doc:name="JSON to JSON" doc:id="486deb82-bcc8-495b-9184-6b33f21f1065" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+'bookings' : payload map((item, index) -> (item) 
+	mapObject ((value, key, index) -> read(value as String,"application/json"))
+)]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+				<scatter-gather doc:name="Scatter-Gather" doc:id="3d85398a-7f79-49ab-919f-f1230cdad930" >
+					<route >
+						<json-logger:logger doc:name="Logger" doc:id="e412a5b9-4611-4c48-b6f5-e6d735e4c4d2" message='#["OLA File is getting generated" ++ now() as String]' config-ref="JSON_Logger_Config1"/>
+						<set-variable value="#[%dw 2.0&#10;output application/json&#10;&#10;---&#10;payload.bookings filter($.partnerName == 'OLA') map(obj, ind) -&gt;&#10;{&#10;	&quot;carNumber&quot;: obj.carNumber,&#10;	&quot;noOfDaysToBook&quot;: obj.noOfDaysToBook,&#10;	&quot;name&quot;: obj.customerdetails.fullName,&#10;	&quot;mobile&quot;: obj.customerdetails.mobile,&#10;	&quot;address&quot;: obj.customerdetails.address,&#10;	&quot;bookingDateTime&quot;: now() as String&#10;}]" doc:name="checkOladetails" doc:id="2ae43da6-4c04-4d68-99d8-67f102af19b3" variableName="checkolapayload"/>
+						<choice doc:name="Choice" doc:id="6446a0cf-56bd-4bbf-b991-5e9fe4f6419b" >
+							<when expression="#[isEmpty(vars.checkolapayload) != true]">
+								<until-successful maxRetries="5" doc:name="Until Successful" doc:id="c2834af8-cb5f-4c29-8d87-88e3bdcd04a6" >
+									<http:request method="POST" doc:name="Request" doc:id="92aa7b1c-6b37-4585-a5b6-103d8778fc28" config-ref="HTTP_Request_configuration1" path="/api/car" responseTimeout="1000000">
+							<http:body><![CDATA[#[%dw 2.0
+output application/json
+
+---
+payload.bookings filter($.partnerName == 'OLA') map(obj, ind) ->
+{
+	"carNumber": obj.carNumber,
+	"noOfDaysToBook": obj.noOfDaysToBook,
+	"fullName": obj.customerdetails.fullName,
+	"mobile": obj.customerdetails.mobile,
+	"address": obj.customerdetails.address,
+	"partnerName": "OLA",
+	"bookingDateTime": now() as String,
+	"vendorfileName": Mule::p("s3.OLAfilename"),
+	"bucketName": Mule::p("s3.crobjbucketName")
+}]]]></http:body>
+							<http:headers><![CDATA[#[output application/java
+---
+{
+	client_secret : "2DddFf34C0c141D3A71c49E80EFfC084",
+	client_id : "b7f18c35f8bc48239eda74bfd669485b"
+}]]]></http:headers>
+						</http:request>
+								</until-successful>
+								<json-logger:logger doc:name="Logger" doc:id="913280e9-f3e2-402a-86df-17670935a1b1" message='#["OLA File is generated" ++ now() as String]' config-ref="JSON_Logger_Config1" />
+								<cloudhub:create-notification doc:name="Create Notification" doc:id="be34e9bc-d98a-48ee-b1d3-de0eeb9c5231" config-ref="CloudHub_Config1" domain="prccarbooking">
+									<cloudhub:message ><![CDATA[#["OLAFile is created at "++ now() as String]]]></cloudhub:message>
+								</cloudhub:create-notification>
+							</when>
+							<otherwise >
+								<json-logger:logger doc:name="Logger" doc:id="20984ad5-bb30-40be-a5f9-88a8f73ae55f" config-ref="JSON_Logger_Config1" message='"no OLA data found"'/>
+							</otherwise>
+						</choice>
+					</route>
+					<route >
+						<json-logger:logger doc:name="Logger" doc:id="3e5de5fc-c5a9-4c9a-a2e5-6a89b47d956b" message='#["UBER File is getting generated" ++ now() as String]' config-ref="JSON_Logger_Config1"/>
+						<set-variable value="#[%dw 2.0&#10;output application/json&#10;&#10;---&#10;payload.bookings filter($.partnerName == 'UBER') map(obj, ind) -&gt;&#10;{&#10;	&quot;carNumber&quot;: obj.carNumber,&#10;	&quot;noOfDaysToBook&quot;: obj.noOfDaysToBook,&#10;	&quot;name&quot;: obj.customerdetails.fullName,&#10;	&quot;mobile&quot;: obj.customerdetails.mobile,&#10;	&quot;address&quot;: obj.customerdetails.address,&#10;	&quot;bookingDateTime&quot;: now() as String&#10;}]" doc:name="checkUberdetails" doc:id="24acc67c-6ea2-4850-a073-aacf320b8472" variableName="checkuberpayload"/>
+						<choice doc:name="Choice" doc:id="d1508fc9-0ba4-4112-9c40-fb405db3063c" >
+							<when expression="#[isEmpty(vars.checkuberpayload) != true]">
+								<until-successful maxRetries="5" doc:name="Until Successful" doc:id="99bc5cb3-9eab-4a17-9802-b138a78037e0" >
+									<http:request method="POST" doc:name="Request" doc:id="fe39b44c-5c60-42a2-a493-aaab65970191" config-ref="HTTP_Request_configuration1" path="/api/car" responseTimeout="1000000">
+							<http:body><![CDATA[#[%dw 2.0
+output application/json
+
+---
+payload.bookings filter($.partnerName == 'UBER') map(obj, ind) ->
+{
+	"carNumber": obj.carNumber,
+	"noOfDaysToBook": obj.noOfDaysToBook,
+	"fullName": obj.customerdetails.fullName,
+	"mobile": obj.customerdetails.mobile,
+	"address": obj.customerdetails.address,
+	"partnerName": "UBER",
+	"bookingDateTime": now() as String,
+	"vendorfileName": Mule::p("s3.UBERfilename"),
+	"bucketName": Mule::p("s3.crobjbucketName")
+}]]]></http:body>
+							<http:headers><![CDATA[#[output application/java
+---
+{
+	client_secret : "2DddFf34C0c141D3A71c49E80EFfC084",
+	client_id : "b7f18c35f8bc48239eda74bfd669485b"
+}]]]></http:headers>
+						</http:request>
+								</until-successful>
+								<json-logger:logger doc:name="Logger" doc:id="3aa21d1d-ba48-4f40-9639-fade172ec560" message='#["UBER File is generated" ++ now() as String]' config-ref="JSON_Logger_Config1" />
+								<cloudhub:create-notification domain="prccarbooking" doc:name="Create Notification" doc:id="b6e9b597-6091-4dff-a768-7ceff6964d95" config-ref="CloudHub_Config1">
+									<cloudhub:message ><![CDATA[#["UBERFile is created "++ now() as String]]]></cloudhub:message>
+								</cloudhub:create-notification>
+							</when>
+							<otherwise >
+								<json-logger:logger doc:name="Logger" doc:id="54f91d99-0774-4068-b397-aed64b4caed8" config-ref="JSON_Logger_Config1" message='"no UBER data found"'/>
+							</otherwise>
+						</choice>
+					</route>
+				</scatter-gather>
+				<os:clear doc:name="Clear" doc:id="c83c36cd-2602-4ee9-aeac-0f1ee98279f2" objectStore="carBookingObjectStore"/>
+				<json-logger:logger doc:name="Logger" doc:id="c4f9286b-3c9c-4de1-bee1-6d043816b3aa" message='#["files are generated and placed in AWS S3 bucket and OS cleared" ++ now()]' config-ref="JSON_Logger_Config1"/>
+			</when>
+			<otherwise >
+				<json-logger:logger doc:name="Logger" doc:id="852984cc-3650-4c95-9ebd-fdb19b3aefbb" message='#["No data found to generate car files" ++ now()]' config-ref="JSON_Logger_Config1"/>
+			</otherwise>
+		</choice>
+	</flow>
+</mule>

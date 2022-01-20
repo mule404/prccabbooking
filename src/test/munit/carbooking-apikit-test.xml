@@ -1,0 +1,153 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mule xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:munit="http://www.mulesoft.org/schema/mule/munit" xmlns:munit-tools="http://www.mulesoft.org/schema/mule/munit-tools" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd http://www.mulesoft.org/schema/mule/munit http://www.mulesoft.org/schema/mule/munit/current/mule-munit.xsd http://www.mulesoft.org/schema/mule/munit-tools http://www.mulesoft.org/schema/mule/munit-tools/current/mule-munit-tools.xsd ">
+    <munit:config name="carbooking-apikit-test.xml" />
+    <http:request-config name="HTTP_Request_Configuration" basePath="/api">
+        <http:request-connection host="localhost" port="8085" />
+    </http:request-config>
+    <munit:test name="get:\car:carbooking-config-200-application\json-FlowTest" description="Verifying functionality of [get:\car:carbooking-config-200-application\json]">
+        <munit:enable-flow-sources>
+            <munit:enable-flow-source value="carbooking-main" />
+            <munit:enable-flow-source value="get:\car:carbooking-config" />
+        </munit:enable-flow-sources>
+        <munit:execution>
+            <http:request config-ref="HTTP_Request_Configuration" method="GET" path="/car">
+                <http:headers><![CDATA[#[{"Accept":"application/json","client_secret":"ea814E7A57f44De7AFf99AC97B1696D4","client_id":"ee3f04963b2840289c669ab468347b62"}]]]></http:headers>
+                <http:query-params><![CDATA[#[{"destination":"Pune","source":"Mumbai"}]]]></http:query-params>
+            </http:request>
+        </munit:execution>
+        <munit:validation>
+            <munit-tools:assert-that expression="#[attributes.statusCode]" is="#[MunitTools::equalTo(200)]" message="The HTTP Status code is not correct!" doc:name="Assert That Status Code is 200" />
+        </munit:validation>
+    </munit:test>
+    <munit:test name="get:\car:carbooking-config-400-application\json-FlowTest" description="Verifying functionality of [get:\car:carbooking-config-400-application\json]">
+        <munit:enable-flow-sources>
+            <munit:enable-flow-source value="carbooking-main" />
+            <munit:enable-flow-source value="get:\car:carbooking-config" />
+        </munit:enable-flow-sources>
+        <munit:execution>
+            <http:request config-ref="HTTP_Request_Configuration" method="GET" path="/car">
+                <http:headers><![CDATA[#[{"Accept":"application/json","client_secret":"","client_id":""}]]]></http:headers>
+                <http:query-params><![CDATA[#[{"destination":""}]]]></http:query-params>
+                <http:response-validator>
+                    <http:success-status-code-validator values="400" />
+                </http:response-validator>
+            </http:request>
+        </munit:execution>
+        <munit:validation>
+            <munit-tools:assert-that expression="#[attributes.statusCode]" is="#[MunitTools::equalTo(400)]" message="The HTTP Status code is not correct!" doc:name="Assert That Status Code is 400" />
+        </munit:validation>
+    </munit:test>
+    <munit:test name="get:\car:carbooking-config-404-application\json-FlowTest" description="Verifying functionality of [get:\car:carbooking-config-404-application\json]">
+        <munit:enable-flow-sources>
+            <munit:enable-flow-source value="carbooking-main" />
+            <munit:enable-flow-source value="get:\car:carbooking-config" />
+        </munit:enable-flow-sources>
+        <munit:execution>
+            <http:request config-ref="HTTP_Request_Configuration" method="GET" path="/car1">
+                <http:headers><![CDATA[#[{"Accept":"application/json","client_secret":"","client_id":""}]]]></http:headers>
+                <http:query-params><![CDATA[#[{"destination":"","source":""}]]]></http:query-params>
+                <http:response-validator>
+                    <http:success-status-code-validator values="404" />
+                </http:response-validator>
+            </http:request>
+        </munit:execution>
+        <munit:validation>
+            <munit-tools:assert-that expression="#[attributes.statusCode]" is="#[MunitTools::equalTo(404)]" message="The HTTP Status code is not correct!" doc:name="Assert That Status Code is 404" />
+            <munit-tools:assert-that expression="#[output application/java ---write(payload, 'application/json') as String]" is="#[MunitTools::equalTo(MunitTools::getResourceAsString('scaffolder/response/get_404_car_application_json.json'))]" message="The response payload is not correct!" doc:name="Assert That - Payload is Expected" />
+        </munit:validation>
+    </munit:test>
+    <munit:test name="get:\car:carbooking-config-401--FlowTest" description="Verifying functionality of [get:\car:carbooking-config-401-]">
+        <munit:enable-flow-sources>
+            <munit:enable-flow-source value="carbooking-main" />
+            <munit:enable-flow-source value="get:\car:carbooking-config" />
+        </munit:enable-flow-sources>
+        <munit:execution>
+            <http:request config-ref="HTTP_Request_Configuration" method="GET" path="/car">
+                <http:headers>#[{"client_secret":"","client_id":""}]</http:headers>
+                <http:query-params>#[{"destination":"","source":""}]</http:query-params>
+                <http:response-validator>
+                    <http:success-status-code-validator values="401" />
+                </http:response-validator>
+            </http:request>
+        </munit:execution>
+        <munit:validation>
+            <munit-tools:assert-that expression="#[attributes.statusCode]" is="#[MunitTools::equalTo(401)]" message="The HTTP Status code is not correct!" doc:name="Assert That Status Code is 401" />
+        </munit:validation>
+    </munit:test>
+    <munit:test name="get:\car:carbooking-config-500--FlowTest" description="Verifying functionality of [get:\car:carbooking-config-500-]">
+        <munit:enable-flow-sources>
+            <munit:enable-flow-source value="carbooking-main" />
+            <munit:enable-flow-source value="get:\car:carbooking-config" />
+        </munit:enable-flow-sources>
+        <munit:execution>
+            <http:request config-ref="HTTP_Request_Configuration" method="GET" path="/car">
+                <http:headers>#[{"client_secret":"","client_id":""}]</http:headers>
+                <http:query-params>#[{"destination":"","source":""}]</http:query-params>
+                <http:response-validator>
+                    <http:success-status-code-validator values="500" />
+                </http:response-validator>
+            </http:request>
+        </munit:execution>
+        <munit:validation>
+            <munit-tools:assert-that expression="#[attributes.statusCode]" is="#[MunitTools::equalTo(500)]" message="The HTTP Status code is not correct!" doc:name="Assert That Status Code is 500" />
+        </munit:validation>
+    </munit:test>
+    <munit:test name="post:\car:application\json:carbooking-config-201-application\json-FlowTest" description="Verifying functionality of [post:\car:application\json:carbooking-config-201-application\json]">
+        <munit:enable-flow-sources>
+            <munit:enable-flow-source value="carbooking-main" />
+            <munit:enable-flow-source value="post:\car:application\json:carbooking-config" />
+        </munit:enable-flow-sources>
+        <munit:behavior>
+            <set-payload value="#[MunitTools::getResourceAsString('scaffolder/request/post_car_application_json.json')]" />
+        </munit:behavior>
+        <munit:execution>
+            <http:request config-ref="HTTP_Request_Configuration" method="POST" path="/car">
+                <http:headers>#[{"Accept":"application/json","client_secret":"","client_id":"","Content-Type":"application/json"}]</http:headers>
+            </http:request>
+        </munit:execution>
+        <munit:validation>
+            <munit-tools:assert-that expression="#[attributes.statusCode]" is="#[MunitTools::equalTo(201)]" message="The HTTP Status code is not correct!" doc:name="Assert That Status Code is 201" />
+        </munit:validation>
+    </munit:test>
+    <munit:test name="post:\car:application\json:carbooking-config-400-application\json-FlowTest" description="Verifying functionality of [post:\car:application\json:carbooking-config-400-application\json]">
+        <munit:enable-flow-sources>
+            <munit:enable-flow-source value="carbooking-main" />
+            <munit:enable-flow-source value="post:\car:application\json:carbooking-config" />
+        </munit:enable-flow-sources>
+        <munit:behavior>
+            <set-payload value="#[MunitTools::getResourceAsString('scaffolder/request/post_car_application_json.json')]" />
+        </munit:behavior>
+        <munit:execution>
+            <http:request config-ref="HTTP_Request_Configuration" method="POST" path="/car">
+                <http:headers>#[{"Accept":"application/json","client_secret":"","client_id":"","Content-Type":"application/json"}]</http:headers>
+                <http:response-validator>
+                    <http:success-status-code-validator values="400" />
+                </http:response-validator>
+            </http:request>
+        </munit:execution>
+        <munit:validation>
+            <munit-tools:assert-that expression="#[attributes.statusCode]" is="#[MunitTools::equalTo(400)]" message="The HTTP Status code is not correct!" doc:name="Assert That Status Code is 400" />
+            <munit-tools:assert-that expression="#[output application/java ---write(payload, 'application/json') as String]" is="#[MunitTools::equalTo(MunitTools::getResourceAsString('scaffolder/response/post_400_car_application_json.json'))]" message="The response payload is not correct!" doc:name="Assert That - Payload is Expected" />
+        </munit:validation>
+    </munit:test>
+    <munit:test name="post:\car:application\json:carbooking-config-401--FlowTest" description="Verifying functionality of [post:\car:application\json:carbooking-config-401-]">
+        <munit:enable-flow-sources>
+            <munit:enable-flow-source value="carbooking-main" />
+            <munit:enable-flow-source value="post:\car:application\json:carbooking-config" />
+        </munit:enable-flow-sources>
+        <munit:behavior>
+            <set-payload value="#[MunitTools::getResourceAsString('scaffolder/request/post_car_application_json.json')]" />
+        </munit:behavior>
+        <munit:execution>
+            <http:request config-ref="HTTP_Request_Configuration" method="POST" path="/car">
+                <http:headers>#[{"client_secret":"","client_id":"","Content-Type":"application/json"}]</http:headers>
+                <http:response-validator>
+                    <http:success-status-code-validator values="401" />
+                </http:response-validator>
+            </http:request>
+        </munit:execution>
+        <munit:validation>
+            <munit-tools:assert-that expression="#[attributes.statusCode]" is="#[MunitTools::equalTo(401)]" message="The HTTP Status code is not correct!" doc:name="Assert That Status Code is 401" />
+        </munit:validation>
+    </munit:test>
+</mule>

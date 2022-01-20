@@ -1,0 +1,12 @@
+       [ {
+          "carNumber": "MH28889",
+          "noOfDaysToBook": 2,
+          "customerdetails":
+            {
+	            "fullName": "Raj",
+            	"mobile": 7208665918,
+	            "address": "Mumbai"
+              },
+	        "partnerName":"UBER",
+	        "bookingDateTime": "10.01.2021"
+        }]

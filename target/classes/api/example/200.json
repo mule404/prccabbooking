@@ -1,0 +1,22 @@
+[
+  {
+    "source": "Mumbai",
+    "destination": "Pune",
+    "cabmodelname": "Dzire, Etios",
+    "cabtype": "Sedan",
+    "numberofseats": "5",
+    "fareamount": "650",
+    "vendorName": "OLA",
+    "carnumber": "MH 01 4567"
+  },
+    {
+    "source": "Mumbai",
+    "destination": "Pune",
+    "cabmodelname": "Mahindra XUV 700",
+    "cabtype": "XUV",
+    "numberofseats": "6",
+    "fareamount": "1650",
+    "vendorName": "UBER",
+    "carnumber": "MH 01 4687"
+  }
+]

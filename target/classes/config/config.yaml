@@ -1,0 +1,29 @@
+s3:
+  bucketName: "cabmaster"
+  accessKey: "![dk/ESIChwgjMEAOicB4VICt/b38MQLkM]"
+  secretKey: "![X1DzFOjTAlvjLmDtoBeiQ8nPGbjJ2SbHfuUK9Q8SJnuO8/WMn8SDz+38IEVhxWYm]"
+  readFilename: "cabMaster.csv"
+  OLAfilename: "OLAcardetails.csv"
+  UBERfilename: "UBERcardetails.csv"
+  crobjbucketName: "cabbookingdetails"
+ 
+http:
+  port: "8089"
+  
+mule:
+  env: "Dev"
+scheduler:
+  frequency: "1"
+
+anypointstudio:
+  username: "apiseroB48"
+  password: "![q3lPCE2ZL9IkVpUHuBZwAQ==]"
+  cldhubdomainname: "bmhcarbooking"
+  
+
+sysapi:
+  host: "syscarbooking.us-e2.cloudhub.io"
+  port: "80"
+  client_id: "![xZE0EJ7BPkksmQ6+tL/eh64+M7uTo0VnRkFsiuOlxy/AqApiPOCuiw==]"
+  client_secret: "![OM1nhMk1QCjUtF0BEh/oXPpQ4VCNmo1Lrl48mqS/dg86nIl1h2zXww==]"
+  

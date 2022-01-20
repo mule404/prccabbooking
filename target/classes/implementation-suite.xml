@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:munit="http://www.mulesoft.org/schema/mule/munit" xmlns:munit-tools="http://www.mulesoft.org/schema/mule/munit-tools"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xsi:schemaLocation="
+		http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+		http://www.mulesoft.org/schema/mule/munit http://www.mulesoft.org/schema/mule/munit/current/mule-munit.xsd
+		http://www.mulesoft.org/schema/mule/munit-tools  http://www.mulesoft.org/schema/mule/munit-tools/current/mule-munit-tools.xsd">
+	<munit:config name="implementation-suite.xml" />
+	<munit:test name="GETcardetails-test" doc:id="d1c4fcf0-417c-4069-90a9-795699873431" >
+		<munit:behavior >
+			<munit:set-event doc:name="Set Input" doc:id="267dfb02-e65b-449a-af1d-d2d5d7c0036f" >
+				<munit:payload value="#[readUrl('classpath://GETcardetailstest\set-event_payload.dwl')]" encoding="UTF-8" />
+				<munit:attributes value="#[readUrl('classpath://GETcardetailstest\set-event_attributes.dwl')]" />
+				<munit:variables >
+					<munit:variable key="outboundHeaders" value="#[readUrl('classpath://GETcardetailstest\set-event_variable_.dwl')]" />
+				</munit:variables>
+			</munit:set-event>
+		</munit:behavior>
+		<munit:execution >
+			<flow-ref doc:name="Flow-ref to GETcardetails" doc:id="1f5ae484-7973-4946-a672-156e63573158" name="GETcardetails"/>
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert doc:name="Assert payload" doc:id="43ddf18f-c45d-418f-953f-d3433f23a213" message="The payload does not match">
+				<munit-tools:that ><![CDATA[#[%dw 2.0
+import GETcardetailstest::assert_expression_payload
+---
+assert_expression_payload::main({payload: payload, attributes: attributes, vars: vars})]]]></munit-tools:that>
+			</munit-tools:assert>
+		</munit:validation>
+	</munit:test>
+	<munit:test name="POSTcardetails-test" doc:id="6b1b5c2a-30cd-42b6-83df-93adbfeffa1a" >
+		<munit:behavior >
+			<munit:set-event doc:name="Set Input" doc:id="939ee2a0-543b-4ad3-b1ec-907e11a75f76" >
+				<munit:payload value="#[output application/json --- readUrl('classpath://POSTcardetailstest\set-event_payload1.dwl')]" encoding="UTF-8" mediaType="application/json" />
+				<munit:attributes value="#[readUrl('classpath://POSTcardetailstest\set-event_attributes1.dwl')]" />
+				<munit:variables >
+					<munit:variable key="outboundHeaders" value="#[readUrl('classpath://POSTcardetailstest\set-event_variable_1.dwl')]" />
+				</munit:variables>
+			</munit:set-event>
+		</munit:behavior>
+		<munit:execution >
+			<flow-ref doc:name="Flow-ref to POSTcardetails" doc:id="ed841cbd-09f3-47a7-aa20-fd961c12888c" name="POSTcardetails"/>
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert doc:name="Assert payload" doc:id="988d805d-d6d2-41fe-a4ce-70818e6ea8a3" message="The payload does not match">
+				<munit-tools:that ><![CDATA[#[%dw 2.0
+import POSTcardetailstest::assert_expression_payload1
+---
+assert_expression_payload1::main({payload: payload, attributes: attributes, vars: vars})]]]></munit-tools:that>
+			</munit-tools:assert>
+		</munit:validation>
+	</munit:test>
+
+
+</mule>

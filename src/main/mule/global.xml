@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:cloudhub="http://www.mulesoft.org/schema/mule/cloudhub" xmlns:os="http://www.mulesoft.org/schema/mule/os"
+	xmlns:json-logger="http://www.mulesoft.org/schema/mule/json-logger"
+	xmlns:s3="http://www.mulesoft.org/schema/mule/s3" xmlns:secure-properties="http://www.mulesoft.org/schema/mule/secure-properties" xmlns:api-gateway="http://www.mulesoft.org/schema/mule/api-gateway" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/api-gateway http://www.mulesoft.org/schema/mule/api-gateway/current/mule-api-gateway.xsd
+http://www.mulesoft.org/schema/mule/secure-properties http://www.mulesoft.org/schema/mule/secure-properties/current/mule-secure-properties.xsd
+http://www.mulesoft.org/schema/mule/s3 http://www.mulesoft.org/schema/mule/s3/current/mule-s3.xsd
+http://www.mulesoft.org/schema/mule/json-logger http://www.mulesoft.org/schema/mule/json-logger/current/mule-json-logger.xsd
+http://www.mulesoft.org/schema/mule/os http://www.mulesoft.org/schema/mule/os/current/mule-os.xsd
+http://www.mulesoft.org/schema/mule/cloudhub http://www.mulesoft.org/schema/mule/cloudhub/current/mule-cloudhub.xsd">
+	<configuration-properties doc:name="Configuration properties" doc:id="7970c952-9280-4e96-93b2-4c6ffe2aaf67" file="config\config.yaml" />
+	<http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="45418543-47b5-4224-acb2-4fc43bbaa1b0" >
+		<http:listener-connection host="0.0.0.0" port="${http.port}" />
+	</http:listener-config>
+	<secure-properties:config name="Secure_Properties_Config" doc:name="Secure Properties Config" doc:id="e7a88c7d-9c78-4f39-8d8d-7712f179559c" file="config\config.yaml" key="123456789" >
+		<secure-properties:encrypt algorithm="Blowfish" />
+	</secure-properties:config>
+	<configuration doc:name="Configuration" doc:id="5414946f-708f-401e-8ddb-59b1fbe29b37" defaultErrorHandler-ref="glberrorError_Handler" />
+	<s3:config name="Amazon_S3_Configuration1" doc:name="Amazon S3 Configuration" doc:id="1997e0a6-ce4c-4c5c-a3f6-185887eb6b48" >
+		<s3:basic-connection accessKey="${secure::s3.accessKey}" secretKey="${secure::s3.secretKey}" />
+	</s3:config>
+	<json-logger:config name="JSON_Logger_Config1" doc:name="JSON Logger Config" doc:id="27dcc601-214e-4151-ba09-b190cf8fa478" applicationName="testing" applicationVersion="v1" environment="dev" />
+	<os:object-store name="carBookingObjectStore" doc:name="Object store" doc:id="30a74188-ca70-40d6-afcd-d3dcbb180169" />
+	<cloudhub:config name="CloudHub_Config1" doc:name="CloudHub Config" doc:id="b2b5298f-d25b-4efe-b672-0a32f1b3d078" >
+		<cloudhub:connection username="${anypointstudio.username}" password="${secure::anypointstudio.password}" environment="52e041c3-e2c2-463a-89e4-ac26e11c9cdd"/>
+	</cloudhub:config>
+	<api-gateway:autodiscovery apiId="17572874" ignoreBasePath="true" doc:name="API Autodiscovery" doc:id="9ae6af37-ade0-459f-9fa3-c03b534c2ec0" flowRef="carbooking-main" />
+</mule>

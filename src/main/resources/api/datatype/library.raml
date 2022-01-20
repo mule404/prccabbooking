@@ -1,0 +1,42 @@
+#%RAML 1.0 Library
+usage: " this is for cab booking"
+
+types:
+  bookcabreq:
+    properties:
+      carNumber:
+        type: string
+        example:
+          "MH 01 2356"
+      noOfDaysToBook:
+        type: integer
+        example:
+          2
+      customerdetails:
+        type: customerdetailsreq
+      partnerName:
+        type: 
+          enum:
+            - OLA
+            - UBER
+      bookingDateTime:
+        type: string
+        example: "01-02-2021 01:00"
+
+
+
+  customerdetailsreq:
+    properties:
+      fullName:
+        type: string
+        example: "Raj Kolte"
+      mobile:
+        type: number
+        example: 8885652559
+      address:
+        type: string
+        example: "mumbai"
+      
+          
+          
+          

@@ -1,0 +1,67 @@
+#%RAML 1.0
+title: carBooking
+
+uses: 
+  cab: /datatype/library.raml
+
+traits:
+  client-id-required:
+    headers:
+      client_id:
+        type: string
+      client_secret:
+        type: string
+    responses:
+      401:
+        description: Unauthorized or invalid client application credentials
+      500:
+        description: Bad response from authorization server, or WSDL SOAP Fault error
+
+/car:
+  description: This is used to get car details for booking
+  get:
+    is: [client-id-required]
+    queryParameters:
+      source:
+        type: string
+        required: true
+      destination:
+        type: string
+        required: true
+    responses:
+      200:
+        body:
+          application/json:
+            example: !include /example/200.json
+      400:
+        body:
+          application/json:
+            example: !include /example/400.json
+      
+      404:
+        body:
+          application/json:
+            example: !include /example/404.json
+    
+  post:
+    is: [client-id-required]
+    description: This is used to book car.
+    body:
+      application/json:
+       type: cab.bookcabreq
+       example: !include /example/post.json
+    responses:
+      201:
+        body:
+          application/json:
+            example: !include /example/201.json
+      400:
+        body:
+          application/json:
+            example: !include /example/400.json
+      500:
+        body:
+          application/json:
+            example: !include /example/500.json
+              
+
